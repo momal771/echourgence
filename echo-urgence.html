@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EchoUrgence — Interprétation ETT/ETO</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0d14;
+  --surface: #10141f;
+  --surface2: #161c2e;
+  --surface3: #1e2640;
+  --border: #2a3350;
+  --accent: #3b82f6;
+  --accent2: #6366f1;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --ok: #10b981;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --mono: 'JetBrains Mono', monospace;
+  --serif: 'DM Serif Display', serif;
+  --sans: 'Instrument Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #0f1629 0%, #0a0d14 60%);
+  border-bottom: 1px solid var(--border);
+  padding: 1.2rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-title {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  background: linear-gradient(90deg, #60a5fa, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+.header-badge {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  background: rgba(59,130,246,0.15);
+  border: 1px solid rgba(59,130,246,0.3);
+  color: #60a5fa;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0 2rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.tab {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  padding: 0.85rem 1.2rem;
+  cursor: pointer;
+  color: var(--text3);
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.2s;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+.tab:hover { color: var(--text2); }
+.tab.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+
+/* LAYOUT */
+.content { padding: 1.5rem 2rem; max-width: 1400px; margin: 0 auto; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* GRID FORM */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 900px) { .form-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+
+.form-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem;
+}
+.form-section-title {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.form-section-title::before {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 14px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+
+.field { margin-bottom: 0.8rem; }
+.field label {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text2);
+  margin-bottom: 0.3rem;
+}
+.field input, .field select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field input::placeholder { color: var(--text3); }
+.field select option { background: var(--surface2); }
+
+.field-row { display: flex; gap: 0.5rem; }
+.field-row .field { flex: 1; margin-bottom: 0; }
+
+/* CHECKBOXES */
+.checks { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text2);
+  cursor: pointer;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.6rem;
+  border-radius: 5px;
+  transition: all 0.15s;
+  user-select: none;
+}
+.check-label:hover { border-color: var(--accent); color: var(--text); }
+.check-label input { accent-color: var(--accent); }
+
+/* BUTTON */
+.btn-analyze {
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: white;
+  border: none;
+  padding: 0.85rem 2.5rem;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.btn-analyze:hover { transform: translateY(-1px); box-shadow: 0 8px 25px rgba(59,130,246,0.35); }
+.btn-analyze:active { transform: translateY(0); }
+
+/* RESULTS */
+.results-area { margin-top: 1.5rem; }
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.4rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--accent);
+}
+.result-card.danger { border-left-color: var(--danger); }
+.result-card.warn { border-left-color: var(--warn); }
+.result-card.ok { border-left-color: var(--ok); }
+
+.result-title {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.badge-danger { background: rgba(239,68,68,0.15); color: #f87171; }
+.badge-warn { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.badge-ok { background: rgba(16,185,129,0.15); color: #34d399; }
+.badge-info { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+.badge-neutral { background: rgba(148,163,184,0.15); color: #94a3b8; }
+
+.result-body {
+  font-size: 0.88rem;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.result-body strong { color: var(--text); }
+.result-body ul { margin: 0.5rem 0 0.5rem 1.2rem; }
+.result-body li { margin-bottom: 0.2rem; }
+
+/* INTERPRETATION BLOCKS */
+.interp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+@media (max-width: 700px) { .interp-grid { grid-template-columns: 1fr; } }
+
+.interp-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+}
+.interp-block h4 {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 0.7rem;
+}
+
+/* GAUGE / SCORE */
+.gauge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-bottom: 0.5rem;
+}
+.gauge-label { font-size: 0.78rem; color: var(--text2); min-width: 120px; }
+.gauge-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--surface3);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.gauge-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.8s cubic-bezier(.4,0,.2,1);
+}
+.gauge-val { font-family: var(--mono); font-size: 0.75rem; min-width: 50px; text-align: right; }
+
+/* SUMMARY BANNER */
+.summary-banner {
+  background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(245,158,11,0.05));
+  border: 1px solid rgba(239,68,68,0.25);
+  border-radius: 10px;
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.summary-banner.ok-banner {
+  background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(59,130,246,0.05));
+  border-color: rgba(16,185,129,0.25);
+}
+.summary-banner.warn-banner {
+  background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(59,130,246,0.05));
+  border-color: rgba(245,158,11,0.25);
+}
+.banner-icon { font-size: 1.8rem; line-height: 1; }
+.banner-text h3 { font-family: var(--serif); font-size: 1.2rem; margin-bottom: 0.3rem; }
+.banner-text p { font-size: 0.85rem; color: var(--text2); }
+
+/* ---- ETO PANEL ---- */
+.eto-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 800px) { .eto-grid { grid-template-columns: 1fr; } }
+
+.eto-step {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.2rem;
+  transition: border-color 0.2s;
+}
+.eto-step:hover { border-color: #3b82f640; }
+.eto-step-num {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+.eto-step h3 {
+  font-family: var(--serif);
+  font-size: 1rem;
+  margin-bottom: 0.6rem;
+  color: var(--text);
+}
+.eto-step p {
+  font-size: 0.82rem;
+  color: var(--text2);
+  line-height: 1.65;
+  margin-bottom: 0.5rem;
+}
+.eto-step .params {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+.param-tag {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+/* DEGREE MOTOR TABLE */
+.degree-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-top: 1rem;
+}
+.degree-table th {
+  background: var(--surface2);
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  border-bottom: 1px solid var(--border);
+}
+.degree-table td {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid rgba(42,51,80,0.5);
+  color: var(--text2);
+  vertical-align: top;
+}
+.degree-table tr:last-child td { border-bottom: none; }
+.degree-table tr:hover td { background: var(--surface2); }
+.deg-badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* NORMAL VALUES PANEL */
+.normals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.8rem;
+}
+.normal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+}
+.normal-card h4 {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+.normal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgba(42,51,80,0.4);
+  font-size: 0.8rem;
+}
+.normal-row:last-child { border-bottom: none; }
+.normal-row span:first-child { color: var(--text2); }
+.normal-row span:last-child { font-family: var(--mono); font-size: 0.75rem; color: #93c5fd; }
+
+/* SECTION TITLE */
+.section-title {
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  color: var(--text);
+}
+.section-subtitle {
+  font-size: 0.85rem;
+  color: var(--text2);
+  margin-bottom: 1.5rem;
+  max-width: 700px;
+  line-height: 1.6;
+}
+
+/* ALERT BOX */
+.alert-box {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 8px;
+  padding: 0.9rem 1.1rem;
+  font-size: 0.82rem;
+  color: #fca5a5;
+  margin-bottom: 1rem;
+}
+.alert-box.alert-info {
+  background: rgba(99,102,241,0.08);
+  border-color: rgba(99,102,241,0.3);
+  color: #c7d2fe;
+}
+
+/* DISCLAIMER */
+.disclaimer {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  font-size: 0.75rem;
+  color: var(--text3);
+  margin-top: 2rem;
+  text-align: center;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">EchoUrgence</div>
+  </div>
+  <div class="header-badge">ETT / ETO · Urgences</div>
+  <div style="margin-left:auto; font-size:0.75rem; color:var(--text3); font-family:var(--mono);">outil pédagogique</div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('ett')">📊 Analyse ETT</button>
+  <button class="tab" onclick="showTab('eto')">🔬 Protocole ETO</button>
+  <button class="tab" onclick="showTab('normals')">📐 Valeurs Normales</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- PANEL 1 : ETT ANALYSE -->
+<!-- ============================================================ -->
+<div id="tab-ett" class="panel active content">
+  <div class="section-title">Analyse Hémodynamique — ETT Urgence</div>
+  <div class="section-subtitle">Renseignez les paramètres cliniques, les constantes et les données ETT pour obtenir une interprétation hémodynamique guidée.</div>
+
+  <div class="form-grid">
+
+    <!-- SECTION 1: CLINIQUE -->
+    <div class="form-section">
+      <div class="form-section-title">Contexte clinique</div>
+      
+      <div class="field">
+        <label>Âge du patient</label>
+        <input type="number" id="age" placeholder="ex: 65" min="18" max="110">
+      </div>
+
+      <div class="field">
+        <label>Signes de choc</label>
+        <div class="checks">
+          <label class="check-label"><input type="checkbox" id="choc_cardio"> Cardiogénique</label>
+          <label class="check-label"><input type="checkbox" id="choc_obst"> Obstructif</label>
+          <label class="check-label"><input type="checkbox" id="choc_sep"> Septique</label>
+          <label class="check-label"><input type="checkbox" id="choc_hypo"> Hypovolémique</label>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:0.6rem">
+        <label>Surcharge droite / gauche</label>
+        <div class="checks">
+          <label class="check-label"><input type="checkbox" id="surg_d"> Surcharge D</label>
+          <label class="check-label"><input type="checkbox" id="surg_g"> Surcharge G</label>
+          <label class="check-label"><input type="checkbox" id="epanch"> Épanchement</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: CONSTANTES -->
+    <div class="form-section">
+      <div class="form-section-title">Constantes</div>
+
+      <div class="field">
+        <label>Rythme cardiaque</label>
+        <select id="rythme">
+          <option value="">-- Choisir --</option>
+          <option value="sinusal">Sinusal</option>
+          <option value="fa">Fibrillation Auriculaire (FA)</option>
+          <option value="flutter">Flutter</option>
+          <option value="tachycardie">Tachycardie</option>
+        </select>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>TAS (mmHg)</label>
+          <input type="number" id="tas" placeholder="120" min="40" max="260">
+        </div>
+        <div class="field">
+          <label>TAD (mmHg)</label>
+          <input type="number" id="tad" placeholder="70" min="20" max="160">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>FC (bpm)</label>
+          <input type="number" id="fc" placeholder="75" min="20" max="250">
+        </div>
+        <div class="field">
+          <label>SpO2 (%)</label>
+          <input type="number" id="spo2" placeholder="98" min="50" max="100">
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: FONCTION VG -->
+    <div class="form-section">
+      <div class="form-section-title">Fonction VG systolique</div>
+
+      <div class="field">
+        <label>FEVG estimée (%)</label>
+        <input type="number" id="fevg" placeholder="ex: 55" min="5" max="80">
+      </div>
+
+      <div class="field">
+        <label>ITV sous-aortique (cm)</label>
+        <input type="number" id="itv" placeholder="ex: 18" step="0.1" min="3" max="40">
+      </div>
+
+      <div class="field">
+        <label>Diamètre CCVG (cm)</label>
+        <input type="number" id="ccvg" placeholder="ex: 2.0" step="0.05" min="1" max="3.5">
+      </div>
+
+      <div class="field">
+        <label>Cinétique segmentaire</label>
+        <select id="cinetique">
+          <option value="normal">Normale</option>
+          <option value="hypo">Hypokinésie diffuse</option>
+          <option value="hypo_seg">Hypokinésie segmentaire</option>
+          <option value="akinesie">Akinésie</option>
+          <option value="dyskinesie">Dyskinésie</option>
+          <option value="hyperkinesie">Hyperkinésie compensatrice</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- SECTION 4: PRVG / DIASTOLE -->
+    <div class="form-section">
+      <div class="form-section-title">PRVG — Fonction diastolique</div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Onde E (cm/s)</label>
+          <input type="number" id="onde_e" placeholder="ex: 80" step="1" min="10" max="200">
+        </div>
+        <div class="field">
+          <label>Onde A (cm/s)</label>
+          <input type="number" id="onde_a" placeholder="ex: 60" step="1" min="10" max="200">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>e' latéral (cm/s)</label>
+          <input type="number" id="e_prime_lat" placeholder="ex: 12" step="0.5" min="2" max="30">
+        </div>
+        <div class="field">
+          <label>e' médial (cm/s)</label>
+          <input type="number" id="e_prime_med" placeholder="ex: 8" step="0.5" min="2" max="20">
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Taille OG (mm)</label>
+          <input type="number" id="og_mm" placeholder="ex: 38" step="1" min="20" max="80">
+        </div>
+        <div class="field">
+          <label>Temps DT (ms)</label>
+          <input type="number" id="dt" placeholder="ex: 200" step="5" min="60" max="500">
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5: VD -->
+    <div class="form-section">
+      <div class="form-section-title">Ventricule droit</div>
+
+      <div class="field">
+        <label>TAPSE (mm)</label>
+        <input type="number" id="tapse" placeholder="ex: 20" step="0.5" min="3" max="35">
+      </div>
+
+      <div class="field">
+        <label>Rapport VD/VG (axe 4 cavités)</label>
+        <input type="number" id="vd_vg" placeholder="ex: 0.5" step="0.05" min="0.1" max="2">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label>Grad. tricuspide (mmHg)</label>
+          <input type="number" id="grad_tri" placeholder="ex: 25" step="1" min="5" max="100">
+        </div>
+        <div class="field">
+          <label>PAD estimée (mmHg)</label>
+          <input type="number" id="pad_est" placeholder="ex: 5" step="1" min="0" max="20">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>VCI (mm) + collapsibilité</label>
+        <div class="field-row" style="margin-top:0.3rem">
+          <div class="field">
+            <input type="number" id="vci_diam" placeholder="diam. mm" step="1" min="5" max="50">
+          </div>
+          <div class="field">
+            <select id="vci_coll">
+              <option value="">-- Collapsibilité --</option>
+              <option value=">50">&gt;50% (normale)</option>
+              <option value="<50">&lt;50% (augmentée)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 6: ÉPANCHEMENT / VALVULOPATHIE -->
+    <div class="form-section">
+      <div class="form-section-title">Épanchement / Valves</div>
+
+      <div class="field">
+        <label>Épanchement péricardique</label>
+        <select id="pericarde">
+          <option value="absent">Absent</option>
+          <option value="minime">Minime (&lt;10mm)</option>
+          <option value="modere">Modéré (10-20mm)</option>
+          <option value="important">Important (&gt;20mm)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Signes tamponnade</label>
+        <div class="checks">
+          <label class="check-label"><input type="checkbox" id="coll_vd"> Collapsus VD</label>
+          <label class="check-label"><input type="checkbox" id="coll_od"> Collapsus OD</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Valvulopathie significative</label>
+        <select id="valvulopathie">
+          <option value="aucune">Aucune</option>
+          <option value="ita_serree">IA sévère</option>
+          <option value="im_serree">IM sévère</option>
+          <option value="ra_serre">RA serré</option>
+          <option value="sm_serree">SM serrée</option>
+          <option value="multiple">Atteinte multi-valvulaire</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Thrombus / épanchement pleural</label>
+        <div class="checks">
+          <label class="check-label"><input type="checkbox" id="thrombus"> Thrombus</label>
+          <label class="check-label"><input type="checkbox" id="epl_d"> EPL droit</label>
+          <label class="check-label"><input type="checkbox" id="epl_g"> EPL gauche</label>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /form-grid -->
+
+  <button class="btn-analyze" onclick="analyzeETT()">⚡ Analyser l'hémodynamique</button>
+
+  <div id="results-area" class="results-area"></div>
+
+  <div class="disclaimer">
+    ⚠️ Outil exclusivement pédagogique — Ne remplace pas l'évaluation clinique d'un médecin qualifié — Ne pas utiliser pour des décisions thérapeutiques réelles
+  </div>
+</div><!-- /panel ETT -->
+
+
+<!-- ============================================================ -->
+<!-- PANEL 2 : PROTOCOLE ETO -->
+<!-- ============================================================ -->
+<div id="tab-eto" class="panel content">
+  <div class="section-title">Protocole ETO Standard — Urgence / Réanimation</div>
+  <div class="section-subtitle">Fiche rapide d'analyse étape par étape d'une ETO standard, avec les degrés d'enfoncement de la sonde et les coupes incontournables.</div>
+
+  <!-- DEGREE MOTOR TABLE -->
+  <div class="form-section" style="margin-bottom:1.5rem">
+    <div class="form-section-title">Degrés du moteur (Multiplan) — Coupes de référence</div>
+    <div class="alert-box alert-info">La sonde ETO multiplan permet de faire tourner le plan de coupe de 0° à 180°. Les coupes standardisées ASE/SCA sont indexées à des angles caractéristiques selon le niveau d'introduction (œsophage bas, mi-œsophage, trans-gastrique).</div>
+    <table class="degree-table">
+      <thead>
+        <tr>
+          <th>Niveau sonde</th>
+          <th>Angle (°)</th>
+          <th>Coupe</th>
+          <th>Ce que l'on voit</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Mi-œsophage (ME)<br><small>≈28–32 cm</small></td>
+          <td><span class="deg-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd">0°</span></td>
+          <td>ME 4 cavités</td>
+          <td>VG, OG, VD, OD, septum, valve mitrale, tricuspide</td>
+        </tr>
+        <tr>
+          <td>ME</td>
+          <td><span class="deg-badge" style="background:rgba(99,102,241,0.2);color:#a5b4fc">30–60°</span></td>
+          <td>ME 2 cavités</td>
+          <td>VG + OG (vue 2 cavités antérieure/inférieure)</td>
+        </tr>
+        <tr>
+          <td>ME</td>
+          <td><span class="deg-badge" style="background:rgba(139,92,246,0.2);color:#c4b5fd">60°</span></td>
+          <td>ME commissures mitrales</td>
+          <td>Feuillets mitraux : P1, A2, P3 en vue "en regard"</td>
+        </tr>
+        <tr>
+          <td>ME</td>
+          <td><span class="deg-badge" style="background:rgba(168,85,247,0.2);color:#d8b4fe">90°</span></td>
+          <td>ME 2 cavités longitudinal</td>
+          <td>VG axe long, valve aortique, CCVG, OG</td>
+        </tr>
+        <tr>
+          <td>ME</td>
+          <td><span class="deg-badge" style="background:rgba(217,70,239,0.2);color:#f0abfc">120–135°</span></td>
+          <td>ME axe long (LAX)</td>
+          <td>CCVG, VA, aorte ascendante, VM, VG axe long</td>
+        </tr>
+        <tr>
+          <td>ME haut</td>
+          <td><span class="deg-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5">0°</span></td>
+          <td>ME valves OD/VD</td>
+          <td>Valve tricuspide, OD, VD, septum inter-auriculaire</td>
+        </tr>
+        <tr>
+          <td>ME haut</td>
+          <td><span class="deg-badge" style="background:rgba(245,158,11,0.2);color:#fcd34d">45°</span></td>
+          <td>ME valve aortique petit axe</td>
+          <td>VA en court-axe, 3 cusps, ostia coronaires, VD</td>
+        </tr>
+        <tr>
+          <td>ME haut</td>
+          <td><span class="deg-badge" style="background:rgba(16,185,129,0.2);color:#6ee7b7">60°</span></td>
+          <td>ME valve pulmonaire</td>
+          <td>VP, tronc pulmonaire, VD antérieur</td>
+        </tr>
+        <tr>
+          <td>ME — Bicave</td>
+          <td><span class="deg-badge" style="background:rgba(20,184,166,0.2);color:#5eead4">80–110°</span></td>
+          <td>ME bicave</td>
+          <td>VCS, VCI, OD, septum inter-auriculaire (CIA, FOP)</td>
+        </tr>
+        <tr>
+          <td>Trans-gastrique (TG)<br><small>≈35–40 cm (anteflexion)</small></td>
+          <td><span class="deg-badge" style="background:rgba(59,130,246,0.2);color:#93c5fd">0°</span></td>
+          <td>TG petit axe VG</td>
+          <td>VG en court-axe, muscles papillaires (évalue ischémie)</td>
+        </tr>
+        <tr>
+          <td>TG</td>
+          <td><span class="deg-badge" style="background:rgba(99,102,241,0.2);color:#a5b4fc">90°</span></td>
+          <td>TG 2 cavités</td>
+          <td>VG axe long via estomac, cordages, CCVG</td>
+        </tr>
+        <tr>
+          <td>TG profond<br><small>≈40–45 cm</small></td>
+          <td><span class="deg-badge" style="background:rgba(16,185,129,0.2);color:#6ee7b7">0°</span></td>
+          <td>TG profond axe long</td>
+          <td>ITV sous-aortique, Doppler aortique, VA</td>
+        </tr>
+        <tr>
+          <td>Aorte descendante</td>
+          <td><span class="deg-badge" style="background:rgba(245,158,11,0.2);color:#fcd34d">0°</span></td>
+          <td>Aorte descendante petit axe</td>
+          <td>Dissection aortique, athérome, épanchement péricardique</td>
+        </tr>
+        <tr>
+          <td>Aorte</td>
+          <td><span class="deg-badge" style="background:rgba(239,68,68,0.2);color:#fca5a5">90°</span></td>
+          <td>Aorte descendante grand axe</td>
+          <td>Extension longitudinale de la dissection, flap</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ÉTAPES ETO -->
+  <div class="section-title" style="margin-top:2rem">Analyse systématique — 10 étapes</div>
+  <div class="eto-grid">
+
+    <div class="eto-step">
+      <div class="eto-step-num">ÉTAPE 01 — ME 0°</div>
+      <h3>4 Cavités — Vue panoramique</h3>
+      <p>Première coupe d'entrée. Évaluer la taille et la contractilité des 4 cavités, le septum inter-auriculaire, la valve mitrale et la tricuspide.</p>
+      <div class="params">
+        <span class="param-tag">Taille VG/OG</span>
+        <span class="param-tag">Cinétique</span>
+        <span class="param-tag">IM / IT Couleur</span>
+        <span class="param-tag">Épanchement</span>
+      </div>
+    </div>
+
+    <div class="eto-step">
+      <div class="eto-step-num">ÉTAPE 02 — ME 30–60°</div>
+      <h3>2 Cavités — Parois ant/inf VG</h3>
+      <p>Évaluation des parois antérieure (IVA) et inféro-postérieure (CD/CX). Recherche d'anomalie cinétique segmentaire.</p>
+      <div class="params">
+        <span class="param-tag">Seg. antéro-apical</span>
+        <span class="param-tag">Seg. inféro-basal</span>
+        <span class="param-tag">Éjection apicale</span>
+      </div>
+    </div>
+
+    <div class="eto-step">
+      <div class="eto-step-num">ÉTAPE 03 — ME 60°</div>
+      <h3>Commissures mitrales — Anatomie valvulaire</h3>
+      <p>Identifier les feuillets P1-A2-P3. Indispensable avant geste valvulaire. Coupler au Doppler couleur pour localiser un jet de régurgitation.</p>
+      <div class="params">
+        <span class="param-tag">Segmentation feuillets</span>
+        <span class="param-tag">Prolapsus</span>
+        <span class="param-tag">Calcifications</span>
+      </div>
+    </div>
+
+    <div class="eto-step">
+      <div class="eto-step-num">ÉTAPE 04 — ME 90°</div>
+      <h3>Axe long VM — CCVG</h3>
+      <p>Hauteur de coaptation mitrale, mouvement systolique antérieur (SAM), gradient CCVG. Vue biplane si 3D disponible.</p>
+      <div class="params">
+        <span class="param-tag">Hauteur coaptation</span>
+        <span class="param-tag">SAM</span>
+        <span class="param-tag">Gradient CCVG</span>
+      </div>
+    </div>
+
+    <div class="eto-step">
+      <div class="eto-step-num">ÉTAPE 05 — ME 45°</div>
+      <h3>Valve aortique — Petit axe</h3>
+      <p>Morphologie des 3 cusps (bicuspide ?), symétrie, calcifications, ostia coronaires (G puis D). Vue essentielle avant TAVI.</p>
+      <div class="params">
+        <span class="param-tag">Morphologie cusps</span>
+        <span class="param-tag">Bicuspide?</span>
+        <span class="param-tag">Ostia coronaires</span>
+        <span class="param-tag">Planimetrie si RA</span>
+      </div>
+    </div>
+
+    <div class="eto-step">
+      <div class="eto-step-num">ÉTAPE 06 — ME 120°</div>
+      <h3>Axe long — CCVG / Aorte ascendante</h3>
+      <p>ITV aortique, gradient moyen (CW), insuffisance aortique (jet diastolique). Diamètre anneau aortique (planification TAVI).</p>
+      <div class="params">
+        <span class="param-tag">ITV Ao (CW)</span>
+        <span class="param-tag">Gradient moyen</span>
+        <span class="param-tag">Vena contracta IA</span>
+        <span class="param-tag">Diamètre anneau</span>
+      </div>
+    </div>
+
+    <div class="eto-step">
+      <div class="eto-step-num">ÉTAPE 07 — ME 80–110°</div>
+      <h3>Bicave — Septum interauriculaire</h3>
+      <p>Recherche CIA, FOP (avec provocation: Valsalva ou bullage), thrombus OD, cathéter VCS/VCI.</p>
+      <div class="params">
+        <span class="param-tag">CIA / FOP</span>
+        <span class="param-tag">Thrombus OD</span>
+        <span class="param-tag">Bombement SIA</span>
+        <span class="param-tag">Cathéter central</span>
+      </div>
+    </div>
+
+    <div class="eto-step">
+      <div class="eto-step-num">ÉTAPE 08 — TG 0°</div>
+      <h3>Court-axe VG — Muscles papillaires</h3>
+      <p>Évaluation FEVG visuelle, épaisseur pariétale, ischémie inferolaterale/antéroseptale selon les segments.</p>
+      <div class="params">
+        <span class="param-tag">FEVG visuelle</span>
+        <span class="param-tag">Ischémie transmurale</span>
+        <span class="param-tag">Asymétrie septale</span>
+      </div>
+    </div>
+
+    <div class="eto-step">
+      <div class="eto-step-num">ÉTAPE 09 — TG profond 0°</div>
+      <h3>Doppler CCVG — Débit cardiaque</h3>
+      <p>Mesure ITV sous-aortique (PW) et aortique (CW). Calcul du volume d'éjection et du débit cardiaque.</p>
+      <div class="params">
+        <span class="param-tag">ITV CCVG (PW)</span>
+        <span class="param-tag">ITV Ao (CW)</span>
+        <span class="param-tag">VES = ITV × πr²</span>
+        <span class="param-tag">DC = VES × FC</span>
+      </div>
+    </div>
+
+    <div class="eto-step">
+      <div class="eto-step-num">ÉTAPE 10 — Aorte descendante</div>
+      <h3>Aorte — Dissection / Épanchement</h3>
+      <p>Rotation antihoraire depuis la vue 4 cavités pour visualiser l'aorte thoracique descendante. Recherche flap intimal, hématome pariétal, épanchement péricardique postérieur.</p>
+      <div class="params">
+        <span class="param-tag">Flap intimal</span>
+        <span class="param-tag">Vrai/faux chenal</span>
+        <span class="param-tag">Épanch. péricardique</span>
+        <span class="param-tag">Athérome grade III–V</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INDICATIONS ETO URGENCE -->
+  <div class="form-section" style="margin-top:1.5rem">
+    <div class="form-section-title">Indications ETO en urgence / réanimation</div>
+    <div class="interp-grid">
+      <div class="interp-block">
+        <h4>Indications formelles (class I)</h4>
+        <ul style="font-size:0.82rem; color:var(--text2); margin-left:1.2rem; line-height:1.8">
+          <li>Suspicion dissection aortique type A</li>
+          <li>Bactériémie à S. aureus / suspicion endocardite</li>
+          <li>Thrombus intracardiaque / embolie paradoxale</li>
+          <li>ETT non contributive (fenêtre acoustique pauvre)</li>
+          <li>Instabilité peropératoire inexpliquée</li>
+          <li>Sevrage difficile de CEC</li>
+        </ul>
+      </div>
+      <div class="interp-block">
+        <h4>Indications fréquentes en réa</h4>
+        <ul style="font-size:0.82rem; color:var(--text2); margin-left:1.2rem; line-height:1.8">
+          <li>Choc réfractaire ou d'origine indéterminée</li>
+          <li>Défaillance hémodynamique post-arrêt cardiaque</li>
+          <li>Tamponnade sous ventilation mécanique</li>
+          <li>Surveillance post-chirurgie valvulaire</li>
+          <li>Guidage de procédures (pace-maker, ECMO)</li>
+          <li>Évaluation EP massive avec instabilité</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="disclaimer">⚠️ Outil pédagogique uniquement — La réalisation d'une ETO nécessite une formation spécifique et une habilitation</div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- PANEL 3 : VALEURS NORMALES -->
+<!-- ============================================================ -->
+<div id="tab-normals" class="panel content">
+  <div class="section-title">Valeurs de référence ETT</div>
+  <div class="section-subtitle">Normes ASE 2015 / ESC 2021 — pour le cœur adulte. Certains paramètres sont ajustés selon l'âge ou la surface corporelle.</div>
+
+  <div class="normals-grid">
+
+    <div class="normal-card">
+      <h4>Fonction systolique VG</h4>
+      <div class="normal-row"><span>FEVG normale</span><span>≥ 55%</span></div>
+      <div class="normal-row"><span>FEVG légèrement altérée</span><span>45–54%</span></div>
+      <div class="normal-row"><span>FEVG modérément altérée</span><span>35–44%</span></div>
+      <div class="normal-row"><span>FEVG sévèrement altérée</span><span>&lt; 35%</span></div>
+      <div class="normal-row"><span>ITV CCVG normale</span><span>18–22 cm</span></div>
+      <div class="normal-row"><span>Débit cardiaque normal</span><span>4–8 L/min</span></div>
+    </div>
+
+    <div class="normal-card">
+      <h4>Fonction diastolique (E/A)</h4>
+      <div class="normal-row"><span>E/A normal (adulte &lt;60 ans)</span><span>0.8–2.0</span></div>
+      <div class="normal-row"><span>E/A normal (sujet âgé &gt;60 ans)</span><span>0.5–1.5</span></div>
+      <div class="normal-row"><span>Grade I (relaxation altérée)</span><span>E/A &lt; 0.8</span></div>
+      <div class="normal-row"><span>Grade II (pseudo-normal)</span><span>E/A 0.8–2 + critères</span></div>
+      <div class="normal-row"><span>Grade III (restrictif)</span><span>E/A &gt; 2</span></div>
+      <div class="normal-row"><span>E/e' normal</span><span>&lt; 8</span></div>
+      <div class="normal-row"><span>E/e' augm. PRVG</span><span>&gt; 14</span></div>
+      <div class="normal-row"><span>Temps DT normal</span><span>160–240 ms</span></div>
+    </div>
+
+    <div class="normal-card">
+      <h4>Oreillette gauche</h4>
+      <div class="normal-row"><span>Diamètre antéro-post normal</span><span>≤ 40 mm</span></div>
+      <div class="normal-row"><span>OG dilatée (légère)</span><span>41–46 mm</span></div>
+      <div class="normal-row"><span>OG dilatée (modérée)</span><span>47–52 mm</span></div>
+      <div class="normal-row"><span>OG dilatée (sévère)</span><span>&gt; 52 mm</span></div>
+      <div class="normal-row"><span>Volume OG indexé normal</span><span>≤ 34 mL/m²</span></div>
+    </div>
+
+    <div class="normal-card">
+      <h4>Ventricule droit</h4>
+      <div class="normal-row"><span>TAPSE normal</span><span>≥ 17 mm</span></div>
+      <div class="normal-row"><span>TAPSE altéré</span><span>&lt; 17 mm</span></div>
+      <div class="normal-row"><span>Rapport VD/VG normal</span><span>&lt; 0.6</span></div>
+      <div class="normal-row"><span>Dilatation VD</span><span>VD/VG ≥ 1</span></div>
+      <div class="normal-row"><span>PAPS normale</span><span>&lt; 35 mmHg</span></div>
+      <div class="normal-row"><span>PAPS élevée</span><span>36–50 mmHg</span></div>
+      <div class="normal-row"><span>HTAP sévère</span><span>&gt; 50 mmHg</span></div>
+    </div>
+
+    <div class="normal-card">
+      <h4>PAPS — Calcul</h4>
+      <div class="normal-row"><span>Formule</span><span>4×V²IT + PAD</span></div>
+      <div class="normal-row"><span>VCI &lt;21mm + &gt;50% coll.</span><span>PAD = 3 mmHg</span></div>
+      <div class="normal-row"><span>VCI 21–25 mm</span><span>PAD = 5–8 mmHg</span></div>
+      <div class="normal-row"><span>VCI &gt;25mm + &lt;50% coll.</span><span>PAD = 15 mmHg</span></div>
+      <div class="normal-row"><span>Gradient IT normal</span><span>≤ 28 mmHg</span></div>
+    </div>
+
+    <div class="normal-card">
+      <h4>VCI — Précharge</h4>
+      <div class="normal-row"><span>VCI normale</span><span>15–21 mm</span></div>
+      <div class="normal-row"><span>VCI dilatée (surcharge)</span><span>&gt; 25 mm</span></div>
+      <div class="normal-row"><span>VCI petite (hypovolémie)</span><span>&lt; 12 mm</span></div>
+      <div class="normal-row"><span>Collapsibilité (&gt;50%)</span><span>PAD basse</span></div>
+      <div class="normal-row"><span>Collapsibilité (&lt;50%)</span><span>PAD élevée</span></div>
+    </div>
+
+    <div class="normal-card">
+      <h4>Valves — Gradients</h4>
+      <div class="normal-row"><span>Grad. moyen aortique normal</span><span>&lt; 20 mmHg</span></div>
+      <div class="normal-row"><span>RA modéré</span><span>20–40 mmHg</span></div>
+      <div class="normal-row"><span>RA serré</span><span>&gt; 40 mmHg</span></div>
+      <div class="normal-row"><span>Vmax Ao RA serré</span><span>&gt; 4 m/s</span></div>
+      <div class="normal-row"><span>Grad. mitral moyen normal</span><span>&lt; 4 mmHg</span></div>
+      <div class="normal-row"><span>SM serrée</span><span>&gt; 10 mmHg</span></div>
+    </div>
+
+    <div class="normal-card">
+      <h4>Onde e' tissulaire — Âge</h4>
+      <div class="normal-row"><span>e' lat normale (&lt;50 ans)</span><span>&gt; 12 cm/s</span></div>
+      <div class="normal-row"><span>e' lat normale (&gt;50 ans)</span><span>&gt; 10 cm/s</span></div>
+      <div class="normal-row"><span>e' med normale (&lt;50 ans)</span><span>&gt; 8 cm/s</span></div>
+      <div class="normal-row"><span>e' med normale (&gt;50 ans)</span><span>&gt; 7 cm/s</span></div>
+      <div class="normal-row"><span>E/e' moyen (lat+med/2)</span><span>Utiliser les deux</span></div>
+    </div>
+
+  </div>
+
+  <!-- ALGORITHME DIASTOLE -->
+  <div class="form-section" style="margin-top:1.5rem">
+    <div class="form-section-title">Algorithme ASE 2016 — Dysfonction diastolique & PRVG</div>
+    <div class="alert-box alert-info" style="margin-bottom:1rem">
+      Cet algorithme s'applique chez les patients avec FEVG &gt;50%. En cas de FEVG &lt;50%, les PRVG sont généralement considérées comme élevées dès que E/e' &gt;14 ou si dilatation OG.
+    </div>
+    <div class="interp-grid">
+      <div class="interp-block">
+        <h4>Critères PRVG élevées (≥2 critères)</h4>
+        <ul style="font-size:0.82rem; color:var(--text2); margin-left:1.2rem; line-height:1.9">
+          <li><strong>E/e' moyen &gt; 14</strong></li>
+          <li><strong>Vitesse IT &gt; 2.8 m/s</strong> (PAPS &gt; 35 mmHg)</li>
+          <li><strong>Volume OG indexé &gt; 34 mL/m²</strong></li>
+          <li><strong>e' lat &lt; 10 cm/s</strong> ou <strong>e' med &lt; 7 cm/s</strong></li>
+        </ul>
+      </div>
+      <div class="interp-block">
+        <h4>Grading diastolique (FEVG ≥50%)</h4>
+        <ul style="font-size:0.82rem; color:var(--text2); margin-left:1.2rem; line-height:1.9">
+          <li><strong>Grade I :</strong> E/A &lt;0.8 + E &lt;50 cm/s → PRVG normales</li>
+          <li><strong>Grade I :</strong> E/A &lt;0.8 + E &gt;50 → PRVG indéterminées</li>
+          <li><strong>Grade II :</strong> E/A 0.8–2 + 1 critère positif</li>
+          <li><strong>Grade III :</strong> E/A &gt;2 ou ≥2 critères positifs → PRVG élevées</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function val(id) {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  return el.value !== '' ? (el.type === 'number' ? parseFloat(el.value) : el.value) : null;
+}
+function chk(id) {
+  const el = document.getElementById(id);
+  return el ? el.checked : false;
+}
+
+function analyzeETT() {
+  const age = val('age');
+  const fevg = val('fevg');
+  const itv = val('itv');
+  const ccvg = val('ccvg');
+  const cinetique = val('cinetique');
+  const rythme = val('rythme');
+  const tas = val('tas');
+  const tad = val('tad');
+  const fc = val('fc');
+  const spo2 = val('spo2');
+  const ondeE = val('onde_e');
+  const ondeA = val('onde_a');
+  const ePrimeLat = val('e_prime_lat');
+  const ePrimeMed = val('e_prime_med');
+  const ogMm = val('og_mm');
+  const dt = val('dt');
+  const tapse = val('tapse');
+  const vdVg = val('vd_vg');
+  const gradTri = val('grad_tri');
+  const padEst = val('pad_est');
+  const vciDiam = val('vci_diam');
+  const vciColl = val('vci_coll');
+  const pericarde = val('pericarde');
+  const valvulopathie = val('valvulopathie');
+
+  const chocCardio = chk('choc_cardio');
+  const chocObst = chk('choc_obst');
+  const chocSep = chk('choc_sep');
+  const chocHypo = chk('choc_hypo');
+  const surgD = chk('surg_d');
+  const surgG = chk('surg_g');
+  const epanch = chk('epanch');
+  const collVD = chk('coll_vd');
+  const collOD = chk('coll_od');
+
+  let html = '';
+  let globalSeverity = 'ok'; // ok | warn | danger
+
+  // --- TAMPONNADE ---
+  if (pericarde && pericarde !== 'absent' && (collVD || collOD)) {
+    globalSeverity = 'danger';
+    html += `<div class="result-card danger">
+      <div class="result-title">⚠️ TAMPONNADE PROBABLE <span class="badge badge-danger">URGENCE ABSOLUE</span></div>
+      <div class="result-body">
+        Épanchement péricardique ${pericarde} avec collapsus ${collVD?'du VD':''} ${collOD?'de l\'OD':''} à l'inspiration.<br>
+        <strong>Action immédiate :</strong>
+        <ul>
+          <li>Péricardiocentèse guidée par écho</li>
+          <li>Ne pas intuber (risque d'ACR à l'induction)</li>
+          <li>Appel chirurgie si tamponnade sous tension</li>
+          <li>Remplissage prudent en attente du geste</li>
+        </ul>
+      </div>
+    </div>`;
+  }
+
+  // --- PAPS ---
+  let paps = null;
+  if (gradTri && padEst !== null) {
+    paps = gradTri + padEst;
+  } else if (gradTri) {
+    paps = gradTri + 5;
+  }
+
+  // --- VD / CŒUR PULMONAIRE AIGU ---
+  let vdDilate = vdVg && vdVg >= 0.9;
+  let tapseAlt = tapse && tapse < 17;
+  let htapSig = paps && paps > 35;
+
+  if ((chocObst || surgD) && vdDilate) {
+    let severity = 'danger';
+    globalSeverity = 'danger';
+    html += `<div class="result-card danger">
+      <div class="result-title">🫁 CŒUR PULMONAIRE AIGU <span class="badge badge-danger">HTAP / EP probable</span></div>
+      <div class="result-body">
+        VD/VG = <strong>${vdVg || '?'}</strong> ${vdVg>=1?'(≥1 : dilatation sévère)':'(élargi)'}.
+        ${tapseAlt?`TAPSE = <strong>${tapse} mm</strong> (altéré &lt;17 mm).`:''}
+        ${paps?`PAPS estimée = <strong>${paps} mmHg</strong>.`:''}
+        <br><br>Tableau évocateur d'<strong>embolie pulmonaire massive</strong> ou de décompensation aiguë d'HTAP.
+        <ul>
+          <li>Signe de D : septum inter-ventriculaire aplati en diastole</li>
+          <li>Rechercher thrombus en transit dans les cavités droites</li>
+          <li>Discuter thrombolyse si EP + instabilité</li>
+          ${tapseAlt?`<li>TAPSE ${tapse} mm : dysfonction VD systolique confirmée</li>`:''}
+        </ul>
+      </div>
+    </div>`;
+  }
+
+  // --- FEVG / FONCTION VG ---
+  let fevgClass = 'ok';
+  if (fevg !== null) {
+    if (fevg < 35) { fevgClass = 'danger'; if(globalSeverity!='danger') globalSeverity='danger'; }
+    else if (fevg < 45) { fevgClass = 'warn'; if(globalSeverity=='ok') globalSeverity='warn'; }
+  }
+
+  // Volume d'éjection / Débit cardiaque
+  let ves = null, dc = null;
+  if (itv && ccvg) {
+    const r = ccvg / 2;
+    ves = Math.round(itv * Math.PI * r * r * 10); // cm² x cm → mL (*10 car cm→mL)
+    if (fc) dc = Math.round(ves * fc / 1000 * 10) / 10;
+  }
+
+  if (fevg !== null || itv !== null) {
+    const itvLow = itv && itv < 16;
+    html += `<div class="result-card ${fevgClass}">
+      <div class="result-title">❤️ Fonction systolique VG 
+        ${fevg !== null ? `<span class="badge badge-${fevgClass=='ok'?'ok':fevgClass=='warn'?'warn':'danger'}">${fevg}%</span>` : ''}
+      </div>
+      <div class="result-body">
+        ${fevg !== null ? `FEVG : <strong>${fevg}%</strong> — ${fevg>=55?'<span style="color:var(--ok)">Normale</span>':fevg>=45?'<span style="color:var(--warn)">Légèrement altérée</span>':fevg>=35?'<span style="color:var(--warn)">Modérément altérée</span>':'<span style="color:var(--danger)">Sévèrement altérée</span>'}.` : ''}
+        ${cinetique && cinetique !== 'normal' ? `<br>Cinétique : <strong>${cinetique.replace('hypo','Hypokinésie').replace('_seg',' segmentaire').replace('akinesie','Akinésie').replace('dyskinesie','Dyskinésie').replace('hyperkinesie','Hyperkinésie')}</strong>.` : ''}
+        ${itv ? `<br>ITV sous-aortique : <strong>${itv} cm</strong> ${itvLow?'<span style="color:var(--warn)">(↓ bas-débit)</span>':'<span style="color:var(--ok)">(normal)</span>'}.` : ''}
+        ${ves ? `<br>Volume d'éjection estimé : <strong>${ves} mL</strong>.` : ''}
+        ${dc ? `<br>Débit cardiaque estimé : <strong>${dc} L/min</strong> ${dc<3.5?'<span style="color:var(--danger)">(bas débit sévère)</span>':dc<4.5?'<span style="color:var(--warn)">(limite)</span>':'<span style="color:var(--ok)">(normal)</span>'}.` : ''}
+        ${chocCardio && fevg && fevg < 40 ? '<br><strong style="color:var(--danger)">Compatibles avec un choc cardiogénique par dysfonction systolique VG.</strong>' : ''}
+      </div>
+    </div>`;
+  }
+
+  // --- DIASTOLE / PRVG ---
+  let ea = null, eePrimeMoy = null;
+  if (ondeE && ondeA && rythme !== 'fa') ea = Math.round(ondeE / ondeA * 10) / 10;
+  if (ePrimeLat && ePrimeMed) {
+    const ePrimeMoy = (ePrimeLat + ePrimeMed) / 2;
+    if (ondeE) eePrimeMoy = Math.round(ondeE / ePrimeMoy * 10) / 10;
+  } else if (ePrimeLat && ondeE) {
+    eePrimeMoy = Math.round(ondeE / ePrimeLat * 10) / 10;
+  }
+
+  // Seuils e' ajustés à l'âge (ASE 2016)
+  const ePrimeLatSeuil = (age && age >= 60) ? 10 : 12;
+  const ePrimeMedSeuil = (age && age >= 60) ? 7 : 8;
+  const ePrimeBas = (ePrimeLat && ePrimeLat < ePrimeLatSeuil) || (ePrimeMed && ePrimeMed < ePrimeMedSeuil);
+
+  // Pseudo-normalisation : E/A dans la norme MAIS e' bas = relaxation masquée par précharge
+  const pseudoNormal = ea !== null && ea >= 0.8 && ea <= 2 && ePrimeBas;
+
+  // Critères PRVG élevées ASE 2016 — 4 critères binaires
+  let prvgCriteres = 0;
+  let prvgDetail = [];
+  if (eePrimeMoy && eePrimeMoy > 14) { prvgCriteres++; prvgDetail.push("E/e' " + eePrimeMoy + " > 14"); }
+  if (gradTri && gradTri > 31) { prvgCriteres++; prvgDetail.push("Grad.IT " + gradTri + " > 31 mmHg"); }
+  if (ogMm && ogMm > 46) { prvgCriteres++; prvgDetail.push("OG " + ogMm + " mm > 46"); }
+  if (ePrimeBas) { prvgCriteres++; prvgDetail.push("e' bas (lat " + (ePrimeLat||'?') + " seuil " + ePrimeLatSeuil + " / med " + (ePrimeMed||'?') + " seuil " + ePrimeMedSeuil + ")"); }
+
+  // Grading diastolique complet avec détection pseudo-normalisation
+  let gradeDiastole = '';
+  let gradeExplication = '';
+  if (rythme !== 'fa' && ea !== null) {
+    if (ea < 0.8) {
+      if (!ePrimeBas && eePrimeMoy && eePrimeMoy <= 8) {
+        gradeDiastole = 'Grade I — Relaxation altérée (PRVG normales)';
+        gradeExplication = "E/A bas + e' normal + E/e' bas : relaxation altérée sans élévation des pressions de remplissage.";
+      } else if (prvgCriteres >= 2) {
+        gradeDiastole = 'Grade II — E/A bas mais PRVG élevées (stade avancé ou hypovolémie)';
+        gradeExplication = "E/A < 0.8 avec ≥2 critères PRVG : profil inhabituel, possiblement dysfonction sévère ou hypovolémie relative.";
+      } else {
+        gradeDiastole = 'Grade I — Relaxation altérée (PRVG indéterminées)';
+        gradeExplication = "E/A bas, données insuffisantes pour statuer sur les PRVG.";
+      }
+    } else if (ea >= 0.8 && ea <= 2) {
+      if (pseudoNormal && prvgCriteres >= 2) {
+        gradeDiastole = '⚠️ Grade II — PSEUDO-NORMALISATION (PRVG élevées)';
+        gradeExplication = "E/A apparemment normal (" + ea + ") MAIS e' bas → la relaxation est altérée, la précharge élevée maintient E artificiellement. Ce profil est fréquemment manqué sans DTI !";
+      } else if (pseudoNormal && prvgCriteres === 1) {
+        gradeDiastole = 'Grade I–II — Pseudo-normalisation possible (indéterminé)';
+        gradeExplication = "E/A = " + ea + " avec e' bas : suspicion de pseudo-normalisation. 1 seul critère PRVG, contexte clinique déterminant.";
+      } else if (!ePrimeBas && prvgCriteres < 2) {
+        gradeDiastole = 'Normal ou Grade I — Diastole probablement préservée';
+        gradeExplication = "E/A = " + ea + ", e' normal pour l'âge (" + (age||'?') + " ans), <2 critères PRVG. Pas d'argument pour une dysfonction diastolique significative.";
+      } else {
+        gradeDiastole = 'Grade II — Dysfonction diastolique (PRVG élevées probables)';
+        gradeExplication = "E/A dans la norme avec critères de surcharge : PRVG probablement élevées.";
+      }
+    } else if (ea > 2) {
+      gradeDiastole = 'Grade III — Profil restrictif (PRVG nettement élevées)';
+      gradeExplication = "E/A très élevé (" + ea + ") : onde E dominante, PRVG nettement augmentées. DT raccourci attendu (<160 ms).";
+    }
+  }
+
+  const diastoleSev = prvgCriteres >= 2 ? 'warn' : 'ok';
+  if (prvgCriteres >= 2 && globalSeverity === 'ok') globalSeverity = 'warn';
+
+  if (ondeE || ePrimeLat || ePrimeMed || eePrimeMoy) {
+    html += `<div class="result-card ${diastoleSev}">
+      <div class="result-title">📊 Fonction diastolique / PRVG
+        ${prvgCriteres >= 2 ? '<span class="badge badge-warn">PRVG ÉLEVÉES</span>' : prvgCriteres === 1 ? '<span class="badge badge-neutral">1 critère</span>' : '<span class="badge badge-ok">Probablement normales</span>'}
+        ${pseudoNormal && prvgCriteres >= 1 ? '<span class="badge badge-warn">⚠ PSEUDO-NORMAL</span>' : ''}
+      </div>
+      <div class="result-body">
+        ${rythme === 'fa' ? '<span style="color:var(--warn)">En FA, E/A non interprétable. S\'appuyer sur E/e\' et volume OG.</span><br>' : ''}
+        ${ea !== null ? `E/A = <strong>${ea}</strong> — seuil normal ${age&&age>=60?'(>60 ans) : 0.5–1.5':'(<60 ans) : 0.8–2.0'}${pseudoNormal?' <span style="color:var(--warn)">⚠ dans la norme MAIS e\' bas</span>':''}.<br>` : ''}
+        ${ePrimeLat ? `e' latéral : <strong>${ePrimeLat} cm/s</strong> (seuil âge >${ePrimeLatSeuil}) — ${ePrimeLat < ePrimeLatSeuil ? '<span style="color:var(--warn)">bas → relaxation altérée</span>' : '<span style="color:var(--ok)">normal</span>'}.<br>` : ''}
+        ${ePrimeMed ? `e' médial : <strong>${ePrimeMed} cm/s</strong> (seuil >${ePrimeMedSeuil}) — ${ePrimeMed < ePrimeMedSeuil ? '<span style="color:var(--warn)">bas → relaxation altérée</span>' : '<span style="color:var(--ok)">normal</span>'}.<br>` : ''}
+        ${eePrimeMoy ? `E/e' moyen : <strong>${eePrimeMoy}</strong> — ${eePrimeMoy > 14 ? '<span style="color:var(--danger)">élevé → PRVG ↑</span>' : eePrimeMoy > 8 ? '<span style="color:var(--warn)">zone grise (8–14)</span>' : '<span style="color:var(--ok)">normal</span>'}.<br>` : ''}
+        ${dt ? `Temps DT : <strong>${dt} ms</strong> ${dt < 160 ? '<span style="color:var(--danger)">(raccourci → profil restrictif)</span>' : dt > 240 ? '<span style="color:var(--warn)">(allongé → relaxation altérée)</span>' : '<span style="color:var(--ok)">(normal)</span>'}.<br>` : ''}
+        ${ogMm ? `OG : <strong>${ogMm} mm</strong> ${ogMm > 46 ? '<span style="color:var(--warn)">(dilatée → surcharge chronique)</span>' : '<span style="color:var(--ok)">(normale)</span>'}.<br>` : ''}
+        ${gradeDiastole ? '<br><strong>' + gradeDiastole + '</strong><br>' : ''}
+        ${gradeExplication ? '<span style="color:var(--text3);font-size:0.82rem">' + gradeExplication + '</span><br>' : ''}
+        ${prvgDetail.length ? '<br><span style="font-size:0.78rem;color:var(--text3)">Critères positifs (' + prvgCriteres + '/4) : ' + prvgDetail.join(' · ') + '</span>' : '<span style="font-size:0.78rem;color:var(--text3)">Critères PRVG : ' + prvgCriteres + '/4</span>'}
+      </div>
+    </div>`;
+  }
+
+  // --- VD & PAPS ---
+  if (tapse !== null || vdVg !== null || paps !== null) {
+    const vdSev = (vdDilate || tapseAlt) ? 'warn' : 'ok';
+    html += `<div class="result-card ${vdSev}">
+      <div class="result-title">🫀 Ventricule droit / PAPS
+        ${paps ? `<span class="badge ${paps>50?'badge-danger':paps>35?'badge-warn':'badge-ok'}">${paps} mmHg</span>` : ''}
+      </div>
+      <div class="result-body">
+        ${tapse !== null ? `TAPSE : <strong>${tapse} mm</strong> — ${tapse < 17 ? '<span style="color:var(--danger)">altéré (&lt;17mm) → dysfonction VD systolique</span>' : '<span style="color:var(--ok)">normal (≥17 mm)</span>'}.<br>` : ''}
+        ${vdVg !== null ? `Rapport VD/VG : <strong>${vdVg}</strong> — ${vdVg >= 1 ? '<span style="color:var(--danger)">VD ≥ VG (dilatation sévère)</span>' : vdVg >= 0.7 ? '<span style="color:var(--warn)">VD modérément élargi</span>' : '<span style="color:var(--ok)">normal</span>'}.<br>` : ''}
+        ${paps !== null ? `PAPS estimée : <strong>${paps} mmHg</strong> (gradient IT ${gradTri} + PAD ${padEst||5} mmHg) — ${paps > 50 ? '<span style="color:var(--danger)">HTAP sévère</span>' : paps > 35 ? '<span style="color:var(--warn)">HTAP modérée</span>' : '<span style="color:var(--ok)">normale</span>'}.<br>` : ''}
+        ${vciDiam && vciColl ? `VCI : <strong>${vciDiam} mm</strong>, collapsibilité <strong>${vciColl}</strong> → PAD estimée ${vciColl==='>50'?'basse (3 mmHg)':vciDiam>25?'élevée (15 mmHg)':'intermédiaire (8 mmHg)'}.<br>` : ''}
+      </div>
+    </div>`;
+  }
+
+  // --- PRÉCHARGE / VOLÉMIE ---
+  let prechargeMsg = '';
+  let volSev = 'ok';
+  if (vciDiam) {
+    if (vciDiam < 12 && vciColl === '>50') {
+      prechargeMsg = `VCI petite (<strong>${vciDiam} mm</strong>) + collapsible → <strong>Hypovolémie</strong>. Patient répondeur probable au remplissage.`;
+      if (chocHypo || chocSep) volSev = 'warn';
+    } else if (vciDiam > 25 && vciColl === '<50') {
+      prechargeMsg = `VCI dilatée (<strong>${vciDiam} mm</strong>) + non collapsible → <strong>Surcharge volémique / Pression droite élevée</strong>. Remplissage dangereux.`;
+      volSev = 'warn';
+      if (globalSeverity === 'ok') globalSeverity = 'warn';
+    } else {
+      prechargeMsg = `VCI : <strong>${vciDiam} mm</strong>, collapsibilité ${vciColl || 'non précisée'}.`;
+    }
+  }
+  if (prechargeMsg) {
+    html += `<div class="result-card ${volSev}">
+      <div class="result-title">💧 Précharge / Volémie</div>
+      <div class="result-body">${prechargeMsg}</div>
+    </div>`;
+  }
+
+  // --- ÉPANCHEMENT PÉRICARDIQUE ---
+  if (pericarde && pericarde !== 'absent') {
+    const percSev = pericarde === 'important' ? 'danger' : pericarde === 'modere' ? 'warn' : 'ok';
+    html += `<div class="result-card ${percSev}">
+      <div class="result-title">🫦 Épanchement péricardique <span class="badge badge-${percSev==='danger'?'danger':percSev==='warn'?'warn':'info'}">${pericarde.toUpperCase()}</span></div>
+      <div class="result-body">
+        ${pericarde === 'minime' ? 'Épanchement minime (&lt;10 mm) sans signe de compression. Surveillance.' : ''}
+        ${pericarde === 'modere' ? 'Épanchement modéré (10-20 mm). Surveiller les signes de tamponnade : collapsus VD, VCI dilatée, variation respiratoire flux mitral.' : ''}
+        ${pericarde === 'important' ? '<strong>Épanchement important (&gt;20 mm)</strong>. Risque de tamponnade élevé. Évaluer collapsus VD/OD.' : ''}
+      </div>
+    </div>`;
+  }
+
+  // --- VALVULOPATHIE ---
+  if (valvulopathie && valvulopathie !== 'aucune') {
+    const vNames = {
+      'ita_serree': 'Insuffisance aortique sévère',
+      'im_serree': 'Insuffisance mitrale sévère',
+      'ra_serre': 'Rétrécissement aortique serré',
+      'sm_serree': 'Sténose mitrale serrée',
+      'multiple': 'Atteinte multi-valvulaire'
+    };
+    html += `<div class="result-card warn">
+      <div class="result-title">🔑 Valvulopathie significative <span class="badge badge-warn">${vNames[valvulopathie]||valvulopathie}</span></div>
+      <div class="result-body">
+        ${valvulopathie === 'ra_serre' ? 'RA serré : bas débit à tolérance variable. Gradient peut être pseudo-normal si FEVG basse (RA à bas débit bas gradient). Vérifier ITV CCVG et réserve contractile (dobutamine).' : ''}
+        ${valvulopathie === 'im_serree' ? 'IM sévère : surcharge de volume OG/VG. PRVG élevées probables. Chercher dilatation OG et critères de sévérité (vena contracta, EROA, volume régurgité).' : ''}
+        ${valvulopathie === 'ita_serree' ? 'IA sévère : surcharge diastolique VG. Pression diastolique aortique basse. Choc diastolique possible.' : ''}
+        ${valvulopathie === 'sm_serree' ? 'SM serrée : obstruction au remplissage VG. PRVG élevées par obstacle mécanique. Tachycardie mal tolérée.' : ''}
+        ${valvulopathie === 'multiple' ? 'Atteinte multi-valvulaire : interprétation complexe. Gradients en cascade possibles. Consultation spécialisée indiquée.' : ''}
+      </div>
+    </div>`;
+  }
+
+  // --- SYNTHÈSE HÉMODYNAMIQUE ---
+  let synth = '';
+  let synthClass = globalSeverity;
+  let bannerIcon = globalSeverity === 'danger' ? '🔴' : globalSeverity === 'warn' ? '🟡' : '🟢';
+  let bannerText = '';
+  let bannerDetails = '';
+
+  if (chocCardio && fevg && fevg < 40) {
+    bannerText = 'Choc cardiogénique — Dysfonction VG systolique sévère';
+    bannerDetails = `FEVG ${fevg}% — bas débit cardiaque. Optimiser inotropes, discuter assistance circulatoire.`;
+  } else if (chocObst && vdDilate) {
+    bannerText = 'Choc obstructif — Cœur pulmonaire aigu (EP probable)';
+    bannerDetails = `Dilatation VD + ${tapseAlt?'TAPSE altéré + ':''} ${paps?'PAPS '+paps+' mmHg':''}. Thrombolyse à discuter en urgence.`;
+  } else if (chocHypo && vciDiam && vciDiam < 12) {
+    bannerText = 'État de choc hypovolémique — Précharge basse';
+    bannerDetails = 'VCI effondrée, patient répondeur au remplissage. Rechercher origine hémorragique ou digestive.';
+  } else if (chocSep && fevg && fevg >= 55) {
+    bannerText = 'Choc septique — Fonction VG préservée (hyperkinésie?)';
+    bannerDetails = `FEVG ${fevg}% normale ou haute. Choc distributif vasoplégique probable. Évaluer résistances vasculaires.`;
+  } else if (!chocCardio && !chocObst && !chocHypo && !chocSep) {
+    if (fevg && fevg >= 55 && (!tapse || tapse >= 17) && prvgCriteres < 2) {
+      bannerText = 'Hémodynamique stable — Fonction systolique bi-ventriculaire préservée';
+      bannerDetails = 'Pas de signe de bas débit, pas de surcharge de pression. Surveillance standard.';
+      synthClass = 'ok';
+    } else {
+      bannerText = 'Anomalies détectées — Interprétation guidée ci-dessous';
+      bannerDetails = 'Analyser les résultats par paramètre. Corrélation clinique indispensable.';
+    }
+  } else {
+    bannerText = 'Tableau hémodynamique à préciser';
+    bannerDetails = 'Croiser les données cliniques et les constantes avec les résultats écho.';
+  }
+
+  // --- RYTHME FA ---
+  if (rythme === 'fa') {
+    html += `<div class="result-card warn">
+      <div class="result-title">⚡ Fibrillation Auriculaire</div>
+      <div class="result-body">
+        Rappel d'interprétation en FA :
+        <ul>
+          <li>L'analyse E/A n'est pas valide (absence d'onde A)</li>
+          <li>ITV : moyenner sur 5 cycles (variabilité battement à battement)</li>
+          <li>La PAPS via gradient IT reste interprétable</li>
+          <li>Volume OG souvent dilaté (cause ou conséquence de la FA)</li>
+          <li>Rechercher thrombus auriculo-appendiculaire gauche (ETT insuffisante : ETT si pas de FA de novo, ETO si CV prévue)</li>
+        </ul>
+      </div>
+    </div>`;
+  }
+
+  // BANNER FINAL
+  const bannerFull = `<div class="summary-banner ${synthClass==='ok'?'ok-banner':synthClass==='warn'?'warn-banner':''}">
+    <div class="banner-icon">${bannerIcon}</div>
+    <div class="banner-text">
+      <h3>${bannerText}</h3>
+      <p>${bannerDetails}</p>
+      ${tas&&tad?`<p style="margin-top:0.3rem;font-family:var(--mono);font-size:0.75rem;color:var(--text3)">TA ${tas}/${tad} mmHg${fc?` · FC ${fc} bpm`:''}${spo2?` · SpO2 ${spo2}%`:''}</p>`:''}
+    </div>
+  </div>`;
+
+  if (!html && !bannerText) {
+    document.getElementById('results-area').innerHTML = `<div class="alert-box alert-info">Renseignez au moins quelques paramètres pour obtenir une interprétation.</div>`;
+    return;
+  }
+
+  document.getElementById('results-area').innerHTML = bannerFull + html;
+
+  // Scroll to results
+  document.getElementById('results-area').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
